@@ -358,42 +358,6 @@ func TestCommandItemHasSubCommands(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// argsFromUse
-// ---------------------------------------------------------------------------
-
-func TestArgsFromUse(t *testing.T) {
-	tests := []struct {
-		use      string
-		wantLen  int
-		wantReq  []bool
-		wantName []string
-	}{
-		{"install", 0, nil, nil},
-		{"service <action> [service-name]", 2, []bool{true, false}, []string{"action", "service-name"}},
-		{"xdebug <on|off> [php-version]", 2, []bool{true, false}, []string{"on|off", "php-version"}},
-		{"db <action> [args...]", 1, []bool{true}, []string{"action"}},
-		{"restore [identifier]", 1, []bool{false}, []string{"identifier"}},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.use, func(t *testing.T) {
-			defs := argsFromUse(tc.use)
-			if len(defs) != tc.wantLen {
-				t.Fatalf("argsFromUse(%q): want %d defs, got %d", tc.use, tc.wantLen, len(defs))
-			}
-			for i, def := range defs {
-				if def.Required != tc.wantReq[i] {
-					t.Errorf("def[%d].Required: want %v, got %v", i, tc.wantReq[i], def.Required)
-				}
-				if def.Name != tc.wantName[i] {
-					t.Errorf("def[%d].Name: want %q, got %q", i, tc.wantName[i], def.Name)
-				}
-			}
-		})
-	}
-}
-
-// ---------------------------------------------------------------------------
 // itemsFromCommands
 // ---------------------------------------------------------------------------
 

@@ -69,48 +69,6 @@ func (i CommandItem) HasSubCommands() bool {
 	return i.Cmd.HasAvailableSubCommands()
 }
 
-// Args returns the cobra flag definitions for commands that need arguments.
-func (i CommandItem) Args() []ArgDef {
-	if i.IsBack || i.Cmd == nil {
-		return nil
-	}
-	return argsFromUse(i.Cmd.Use)
-}
-
-// ArgDef describes a single argument slot for a command.
-type ArgDef struct {
-	Name     string
-	Required bool
-}
-
-// argsFromUse parses cobra Use strings like "service <action> [service-name]"
-// into a slice of ArgDef. Required args are wrapped in <>, optional in [].
-func argsFromUse(use string) []ArgDef {
-	parts := strings.Fields(use)
-	if len(parts) <= 1 {
-		return nil
-	}
-
-	var defs []ArgDef
-	for _, part := range parts[1:] {
-		if strings.HasSuffix(part, "...]") || strings.HasSuffix(part, "...>") {
-			continue
-		}
-		if strings.HasPrefix(part, "<") && strings.HasSuffix(part, ">") {
-			defs = append(defs, ArgDef{
-				Name:     strings.Trim(part, "<>"),
-				Required: true,
-			})
-		} else if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
-			defs = append(defs, ArgDef{
-				Name:     strings.Trim(part, "[]"),
-				Required: false,
-			})
-		}
-	}
-	return defs
-}
-
 // itemsFromCommands converts a slice of cobra commands into list.Item values.
 // When withBack is true, a synthetic "← back" item is prepended.
 func itemsFromCommands(cmds []*cobra.Command, withBack bool) []list.Item {
