@@ -101,10 +101,10 @@ echo
 # 1. Dependencies (Linux/apt only; macOS assumes brew/git present)
 # ---------------------------------------------------------------------------
 if [ "$OS" = "linux" ] && command -v apt-get >/dev/null 2>&1; then
-    info "Installing base dependencies (git, python3, python3-venv, curl, tar)"
+    info "Installing base dependencies (git, curl, tar)"
     as_root apt-get update -y >/dev/null
     as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        git python3 python3-venv curl ca-certificates tar >/dev/null
+        git curl ca-certificates tar >/dev/null
 fi
 
 # ---------------------------------------------------------------------------
