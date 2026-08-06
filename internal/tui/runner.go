@@ -15,6 +15,7 @@
 package tui
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -77,34 +78,34 @@ func RunWithPanel(root *cobra.Command, args []string, version string) error {
 // the task-start line). This gates BubbleTea startup after vars_prompt completes.
 func waitForFirstJSONTask(r io.Reader) io.Reader {
 	var buf bytes.Buffer
+	br := bufio.NewReader(r)
 	var line []byte
-	oneByte := make([]byte, 1)
 
 	for {
-		n, err := r.Read(oneByte)
-		if n > 0 {
-			b := oneByte[0]
+		b, err := br.ReadByte()
+		if err == nil {
 			buf.WriteByte(b)
 			switch b {
 			case '\n':
 				if isJSONTaskStart(line) {
-					break
+					goto found
 				}
 				line = line[:0]
 			case '\r':
-				// CR terminates spinner-text lines — reset without parsing.
 				line = line[:0]
 			default:
 				line = append(line, b)
 			}
-		}
-		if err != nil {
-			// Pipe closed before any task — return what we have.
+		} else {
+			if len(line) > 0 && isJSONTaskStart(line) {
+				break
+			}
 			break
 		}
 	}
 
-	return io.MultiReader(&buf, r)
+found:
+	return io.MultiReader(&buf, br)
 }
 
 // isJSONTaskStart returns true when line is a jsonl task-start event.
