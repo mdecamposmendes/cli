@@ -53,8 +53,6 @@ type tuiStyles struct {
 	ItemSelected lipgloss.Style
 	ItemDim      lipgloss.Style
 
-	Divider lipgloss.Style
-
 	HelpKey  lipgloss.Style
 	HelpDesc lipgloss.Style
 	HelpSep  lipgloss.Style
@@ -104,9 +102,6 @@ func newStyles() tuiStyles {
 			Foreground(colourGreen),
 
 		ItemDim: lipgloss.NewStyle().
-			Foreground(colourDim),
-
-		Divider: lipgloss.NewStyle().
 			Foreground(colourDim),
 
 		HelpKey: lipgloss.NewStyle().
