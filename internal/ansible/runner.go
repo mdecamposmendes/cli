@@ -61,6 +61,7 @@ type RunOpts struct {
 	WorkDir string
 	// Verbose enables ansible-playbook -v output.
 	Verbose bool
+	Debug   bool
 }
 
 // Run executes the given playbook as a subprocess, streaming stdout/stderr
@@ -119,6 +120,12 @@ func Run(opts *RunOpts) error {
 	// Preserve OLDPWD for playbooks that still use lookup('env','OLDPWD').
 	env := os.Environ()
 	env = setEnv(env, "OLDPWD", workDir)
+
+	if opts.Debug {
+		env = setEnv(env, "APPLICATION_DEBUG_INFO_ENABLED", "1")
+		env = setEnv(env, "ANSIBLE_STDOUT_CALLBACK", "ansible.builtin.default")
+		env = setEnv(env, "ANSIBLE_CALLBACK_RESULT_FORMAT", "yaml")
+	}
 
 	// Use syscall.Exec to deliver signals directly to ansible-playbook.
 	// argv/env are from trusted sources (platform constants + CLI args).
@@ -185,11 +192,8 @@ func RunSubprocess(opts *RunOpts) (*exec.Cmd, io.Reader, func(), error) {
 	env = setEnv(env, "ANSIBLE_STDOUT_CALLBACK", "ansible.posix.jsonl")
 
 	// When -d / --debug is passed, enable verbose callback output.
-	for _, opt := range opts.Opts {
-		if opt == "-d" || opt == "--debug" {
-			env = setEnv(env, "APPLICATION_DEBUG_INFO_ENABLED", "1")
-			break
-		}
+	if opts.Debug {
+		env = setEnv(env, "APPLICATION_DEBUG_INFO_ENABLED", "1")
 	}
 
 	// Open the log file and write a header. Truncated per run (matching the
