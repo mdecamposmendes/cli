@@ -124,8 +124,6 @@ func Discover(repoDir string) ([]*cobra.Command, error) {
 // The command's RunE calls ansible.Run with the playbook name extracted
 // from the @command annotation (colons preserved, e.g. "project:env").
 func buildCommand(meta playbookMeta) *cobra.Command {
-	var verbose bool
-
 	// Derive the cobra Use string from @usage if available, otherwise fall
 	// back to just the subcommand name (last segment after any colon).
 	use := commandUse(meta)
@@ -136,21 +134,24 @@ func buildCommand(meta playbookMeta) *cobra.Command {
 	playbook := meta.command // e.g. "service" or "project:env"
 
 	cmd := &cobra.Command{
-		Use:   use,
-		Short: meta.description,
-		Long:  long,
-		// Accept any number of positional args — validation is the playbook's job.
-		Args: cobra.ArbitraryArgs,
+		Use:                use,
+		Short:              meta.description,
+		Long:               long,
+		Args:               cobra.ArbitraryArgs,
+		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			workDir, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("getting working directory: %w", err)
 			}
+			positional, opts, verbose, debug := ansible.SplitTokens(args)
 			return ansible.Run(&ansible.RunOpts{
 				Playbook: playbook,
-				Args:     args,
+				Args:     positional,
+				Opts:     opts,
 				WorkDir:  workDir,
 				Verbose:  verbose,
+				Debug:    debug,
 			})
 		},
 	}
@@ -161,7 +162,9 @@ func buildCommand(meta playbookMeta) *cobra.Command {
 		"playbook": playbook,
 	}
 
-	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose Ansible output")
+	cmd.Flags().BoolP("verbose", "v", false, "Enable verbose Ansible output")
+	cmd.Flags().BoolP("debug", "d", false, "Enable debug output")
+
 	return cmd
 }
 
