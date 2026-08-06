@@ -36,10 +36,11 @@ import (
 // startup on the first JSON task-start event, ensuring Ansible's vars_prompt
 // password input runs on the raw terminal. Non-TTY falls back to normal ansible.Run().
 func RunWithPanel(root *cobra.Command, args []string, version string) error {
-	// Let cobra handle help requests and built-in (non-ansible) commands
-	// directly — bypassing the TUI/ansible path entirely.
 	for _, arg := range args {
 		if arg == "--help" || arg == "-h" {
+			if cmd, _, err := root.Find(args); err == nil {
+				return cmd.Help()
+			}
 			os.Args = append([]string{os.Args[0]}, args...)
 			return root.Execute()
 		}
@@ -60,6 +61,10 @@ func RunWithPanel(root *cobra.Command, args []string, version string) error {
 	if err != nil {
 		os.Args = append([]string{os.Args[0]}, args...)
 		return root.Execute()
+	}
+
+	if opts.Debug {
+		return ansible.Run(opts)
 	}
 
 	proc, ansibleOut, cleanup, err := ansible.RunSubprocess(opts)
@@ -255,19 +260,7 @@ func resolveRunOpts(root *cobra.Command, args []string) (*ansible.RunOpts, error
 		playbook = strings.SplitN(cmd.Use, " ", 2)[0]
 	}
 
-	var verbose bool
-	var positionalArgs, opts []string
-	for _, token := range remaining {
-		switch {
-		case token == "--verbose" || token == "-v":
-			verbose = true
-			// Do not forward to opts — cobra's per-command flag, not a playbook opt.
-		case strings.HasPrefix(token, "-"):
-			opts = append(opts, token)
-		default:
-			positionalArgs = append(positionalArgs, token)
-		}
-	}
+	positionalArgs, opts, verbose, debug := ansible.SplitTokens(remaining)
 
 	workDir, err := os.Getwd()
 	if err != nil {
@@ -280,6 +273,7 @@ func resolveRunOpts(root *cobra.Command, args []string) (*ansible.RunOpts, error
 		Opts:     opts,
 		WorkDir:  workDir,
 		Verbose:  verbose,
+		Debug:    debug,
 	}, nil
 }
 
