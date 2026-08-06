@@ -37,8 +37,8 @@ NC='\033[0m'
 # ---------------------------------------------------------------------------
 # Configuration (env-overridable)
 # ---------------------------------------------------------------------------
-VSH_CLI_REPO="${VSH_CLI_REPO:-AW3i/cli}"
-VSH_PLAYBOOK_REPO="${VSH_PLAYBOOK_REPO:-AW3i/valet-sh}"
+VSH_CLI_REPO="${VSH_CLI_REPO:-mdecamposmendes/cli}"
+VSH_PLAYBOOK_REPO="${VSH_PLAYBOOK_REPO:-valet-sh/valet-sh}"
 VSH_PLAYBOOK_BRANCH="${VSH_PLAYBOOK_BRANCH:-3.x}"
 VSH_RUNTIME_REPO="${VSH_RUNTIME_REPO:-valet-sh/runtime}"
 # Optional: pin an exact CLI release tag (e.g. v3.0.1-dev). Empty = resolve the
