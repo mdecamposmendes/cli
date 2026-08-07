@@ -46,7 +46,7 @@ VSH_RUNTIME_REPO="${VSH_RUNTIME_REPO:-valet-sh/runtime}"
 VSH_CLI_VERSION="${VSH_CLI_VERSION:-}"
 
 INSTALL_BASE="/usr/local/valet-sh"
-INSTALL_BIN="${INSTALL_BASE}/bin/valet"
+INSTALL_BIN="${INSTALL_BASE}/bin/valet.sh"
 VENV_DIR="${INSTALL_BASE}/venv"
 PLAYBOOK_DIR="${INSTALL_BASE}/valet-sh"
 SYMLINK="/usr/local/bin/valet.sh"
