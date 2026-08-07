@@ -157,5 +157,16 @@ Steps performed:
 		},
 	})
 
+	cmd.AddCommand(&cobra.Command{
+		Use:   "release-channel",
+		Short: "Show or change the release channel for valet-sh updates",
+		Long: `Shows or change the current release channel (branch) for valet-sh (Ansible playbooks and Runtime) updates.
+	     `,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return updater.ReleaseChannel(platform.RepoDir())
+		},
+	})
+
 	return cmd
 }
