@@ -210,6 +210,7 @@ ok "CLI installed to ${INSTALL_BIN}"
 # ---------------------------------------------------------------------------
 # 5. Shim on PATH
 # ---------------------------------------------------------------------------
+as_root mkdir -p "$(dirname "${SYMLINK}")"
 as_root rm -f "${SYMLINK}"
 as_root tee "${SYMLINK}" >/dev/null <<EOF
 #!/bin/bash
