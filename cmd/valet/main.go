@@ -93,7 +93,7 @@ func removeVIFlag(args []string) []string {
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "valet",
+		Use:   "valet.sh",
 		Short: "valet.sh — local dev environment manager for Magento and PHP projects",
 		Long: `valet.sh manages your local development environment for Magento, Neos,
 AEM, and other PHP-based projects. It handles multiple simultaneous versions

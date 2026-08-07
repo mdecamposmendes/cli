@@ -28,7 +28,7 @@ func noop(_ *cobra.Command, _ []string) error { return nil }
 
 // testRoot builds a minimal cobra command tree for testing.
 func testRoot() *cobra.Command {
-	root := &cobra.Command{Use: "valet", Short: "test root", RunE: noop}
+	root := &cobra.Command{Use: "valet.sh", Short: "test root", RunE: noop}
 
 	root.AddCommand(&cobra.Command{Use: "install", Short: "Install services", RunE: noop})
 

@@ -21,10 +21,10 @@ func TestHasVIFlag(t *testing.T) {
 		args []string
 		want bool
 	}{
-		{[]string{"valet", "--vi"}, true},
-		{[]string{"valet", "-vi"}, true},
-		{[]string{"valet", "service"}, false},
-		{[]string{"valet"}, false},
+		{[]string{"valet.sh", "--vi"}, true},
+		{[]string{"valet.sh", "-vi"}, true},
+		{[]string{"valet.sh", "service"}, false},
+		{[]string{"valet.sh"}, false},
 	}
 	for _, tc := range tests {
 		got := hasVIFlag(tc.args)
@@ -35,7 +35,7 @@ func TestHasVIFlag(t *testing.T) {
 }
 
 func TestRemoveVIFlag(t *testing.T) {
-	args := []string{"valet", "--vi", "service"}
+	args := []string{"valet.sh", "--vi", "service"}
 	result := removeVIFlag(args)
 	if len(result) != 2 {
 		t.Fatalf("expected 2 args after removal, got %d: %v", len(result), result)
@@ -46,7 +46,7 @@ func TestRemoveVIFlag(t *testing.T) {
 }
 
 func TestRemoveVIFlagMultiple(t *testing.T) {
-	args := []string{"valet", "-vi", "--vi", "service"}
+	args := []string{"valet.sh", "-vi", "--vi", "service"}
 	result := removeVIFlag(args)
 	for _, a := range result {
 		if a == "--vi" || a == "-vi" {

@@ -99,7 +99,7 @@ func helpFunc() func(*cobra.Command, []string) {
 				_, _ = fmt.Fprintf(w, "  %s\n", cmd.UseLine())
 			}
 			if cmd.HasAvailableSubCommands() {
-				_, _ = fmt.Fprintf(w, "  %s [command]\n", cmd.CommandPath())
+				_, _ = fmt.Fprintf(w, "  %s [options] [command] [arguments]\n", cmd.CommandPath())
 			}
 			_, _ = fmt.Fprintln(w)
 		}

@@ -180,7 +180,7 @@ func checkAnsibleUpdate(repoDir string) bool {
 
 // promptSelfUpgrade calls valet self-upgrade and returns true if the CLI was updated.
 func promptSelfUpgrade() bool {
-	cmd := exec.Command("valet", "self-upgrade")
+	cmd := exec.Command("valet.sh", "self-upgrade")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

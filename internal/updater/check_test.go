@@ -76,14 +76,14 @@ func TestIsHelpOrVersionCall(t *testing.T) {
 		args []string
 		want bool
 	}{
-		{"help flag", []string{"valet", "--help"}, true},
-		{"h flag", []string{"valet", "-h"}, true},
-		{"version flag", []string{"valet", "--version"}, true},
-		{"v flag", []string{"valet", "-v"}, true},
-		{"help subcommand", []string{"valet", "help"}, true},
-		{"service with help", []string{"valet", "service", "-h"}, true},
-		{"normal command", []string{"valet", "service", "start", "php83"}, false},
-		{"install", []string{"valet", "install"}, false},
+		{"help flag", []string{"valet.sh", "--help"}, true},
+		{"h flag", []string{"valet.sh", "-h"}, true},
+		{"version flag", []string{"valet.sh", "--version"}, true},
+		{"v flag", []string{"valet.sh", "-v"}, true},
+		{"help subcommand", []string{"valet.sh", "help"}, true},
+		{"service with help", []string{"valet.sh", "service", "-h"}, true},
+		{"normal command", []string{"valet.sh", "service", "start", "php83"}, false},
+		{"install", []string{"valet.sh", "install"}, false},
 	}
 
 	for _, tc := range tests {
