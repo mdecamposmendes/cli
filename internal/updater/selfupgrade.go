@@ -466,3 +466,25 @@ func verifySha256(filePath, checksumsPath, expectedFileName string) error {
 
 	return fmt.Errorf("checksum for %s not found in checksums.txt", expectedFileName)
 }
+
+func checkoutBranch(repoDir, branch string) error {
+	if out, err := exec.Command("git", "-C", repoDir, "status", "--porcelain").Output(); err != nil {
+		return fmt.Errorf("failed to check working tree: %w", err)
+	} else if len(strings.TrimSpace(string(out))) > 0 {
+		return fmt.Errorf("refusing to switch branches: uncommitted changes in %s", repoDir)
+	}
+
+	fmt.Printf("  Fetching %s...\n", branch)
+	if err := exec.Command("git", "-C", repoDir, "fetch", "--quiet", "origin", branch).Run(); err != nil {
+		return fmt.Errorf("failed to fetch origin/%s: %w", branch, err)
+	}
+
+	fmt.Printf("  Checking out %s...\n", branch)
+	cmd := exec.Command("git", "-C", repoDir, "checkout", "-B", branch, "origin/"+branch)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to checkout %s: %w", branch, err)
+	}
+	return nil
+}

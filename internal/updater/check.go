@@ -35,12 +35,9 @@ import (
 // tested against the fork. Once these changes are reviewed and merged into the
 // upstream project, revert cliRepo to "valet-sh/valet-sh-cli" and
 // playbookBranch to "master". See also selfupgrade.go which uses these consts.
-const (
-	// cliRepo is the GitHub repo (owner/name) that publishes the CLI releases.
-	cliRepo = "AW3i/cli"
-	// playbookBranch is the branch of the valet-sh Ansible repo to track.
-	playbookBranch = "3.x"
-)
+const cliRepo = "AW3i/cli"
+
+var playbookBranch = GetCurrentReleaseChannel()
 
 const (
 	// checkInterval is how often the GitHub API is consulted.
@@ -63,10 +60,6 @@ const (
 	// upgradeAPITimeout is used for explicit 'valet self-upgrade' invocations
 	// where the user is actively waiting and a longer round-trip is acceptable.
 	upgradeAPITimeout = 15 * time.Second
-
-	// UpdateChannelEnvVar is the environment variable that controls which
-	// release channel is tracked. Accepted values: "stable" (default), "dev".
-	UpdateChannelEnvVar = "VALET_UPDATE_CHANNEL"
 )
 
 // ANSI codes — same values as the Python callback plugin and help.go.
@@ -216,22 +209,10 @@ func writeTimestamp() {
 	_ = f.Close()
 }
 
-// updateChannel returns the release channel to track.
-// Defaults to "stable"; set VALET_UPDATE_CHANNEL=dev to include pre-releases.
-func updateChannel() string {
-	if strings.ToLower(os.Getenv(UpdateChannelEnvVar)) == "dev" {
-		return "dev"
-	}
-	return "stable"
-}
-
 // fetchLatestCliTag returns the latest tag for the configured channel using
 // the given HTTP timeout. Pass apiTimeout for background checks, upgradeAPITimeout
 // for explicit self-upgrade invocations.
 func fetchLatestCliTag(timeout time.Duration) (string, error) {
-	if updateChannel() == "dev" {
-		return fetchLatestAnyTag(timeout)
-	}
 	return fetchLatestStableTag(timeout)
 }
 
