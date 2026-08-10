@@ -105,7 +105,7 @@ Configuration is driven by a .valet-sh.yml file in each project directory.`,
 		SilenceErrors:     true,
 		Version:           Version,
 		DisableAutoGenTag: true,
-		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
+		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: false},
 		// No args at root → show help.
 		// Unknown command → cobra calls RunE with the unknown token as an arg,
 		// so we show help and exit cleanly rather than printing a confusing error.
