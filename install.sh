@@ -108,8 +108,9 @@ if [ "$OS" = "linux" ] && command -v apt-get >/dev/null 2>&1; then
 fi
 
 if [ "$OS" = "darwin" ]; then
+    sudo -v
     if ! command -v brew >/dev/null 2>&1 && [ ! -f /opt/homebrew/bin/brew ] && [ ! -f /usr/local/bin/brew ]; then
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
 fi
 
