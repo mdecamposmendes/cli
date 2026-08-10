@@ -24,6 +24,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -194,6 +195,8 @@ func RunSubprocess(opts *RunOpts) (*exec.Cmd, io.Reader, func(), error) {
 	// When -d / --debug is passed, enable verbose callback output.
 	if opts.Debug {
 		env = setEnv(env, "APPLICATION_DEBUG_INFO_ENABLED", "1")
+		env = setEnv(env, "ANSIBLE_STDOUT_CALLBACK", "ansible.builtin.default")
+		env = setEnv(env, "ANSIBLE_CALLBACK_RESULT_FORMAT", "yaml")
 	}
 
 	// Open the log file and write a header. Truncated per run (matching the
@@ -243,7 +246,7 @@ func RunSubprocess(opts *RunOpts) (*exec.Cmd, io.Reader, func(), error) {
 func setEnv(env []string, key, value string) []string {
 	prefix := key + "="
 	for i, e := range env {
-		if len(e) >= len(prefix) && e[:len(prefix)] == prefix {
+		if strings.HasPrefix(e, prefix) {
 			env[i] = prefix + value
 			return env
 		}
