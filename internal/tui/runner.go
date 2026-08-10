@@ -38,6 +38,8 @@ import (
 func RunWithPanel(root *cobra.Command, args []string, version string) error {
 	for _, arg := range args {
 		if arg == "--help" || arg == "-h" {
+			root.InitDefaultHelpCmd()
+			root.InitDefaultCompletionCmd(args...)
 			if cmd, _, err := root.Find(args); err == nil {
 				return cmd.Help()
 			}
