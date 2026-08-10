@@ -107,6 +107,12 @@ if [ "$OS" = "linux" ] && command -v apt-get >/dev/null 2>&1; then
         git curl ca-certificates tar >/dev/null
 fi
 
+if [ "$OS" = "darwin" ]; then
+    if ! command -v brew >/dev/null 2>&1 && [ ! -f /opt/homebrew/bin/brew ] && [ ! -f /usr/local/bin/brew ]; then
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+fi
+
 # ---------------------------------------------------------------------------
 # Prepare install directory
 # ---------------------------------------------------------------------------
