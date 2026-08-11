@@ -37,7 +37,7 @@ import (
 // password input runs on the raw terminal. Non-TTY falls back to normal ansible.Run().
 func RunWithPanel(root *cobra.Command, args []string, version string) error {
 	for _, arg := range args {
-		if arg == "--help" || arg == "-h" {
+		if arg != "--help" && arg != "-h" {
 			continue
 		}
 		root.InitDefaultHelpCmd()
