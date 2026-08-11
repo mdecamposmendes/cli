@@ -100,6 +100,9 @@ func Discover(repoDir string) ([]*cobra.Command, error) {
 				parent := &cobra.Command{
 					Use:   parentName,
 					Short: parentName + " commands",
+					Annotations: map[string]string{
+						"playbook-group": "true",
+					},
 				}
 				parents[parentName] = parent
 			}

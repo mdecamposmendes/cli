@@ -70,6 +70,26 @@ func ErrorPrefix(msg string) string {
 	return "✘ " + msg
 }
 
+func isAnsibleCommand(cmd *cobra.Command) bool {
+	return cmd.Annotations["playbook"] != "" || cmd.Annotations["playbook-group"] != ""
+}
+
+func printCommandList(w io.Writer, header string, cmds []*cobra.Command) {
+	_, _ = fmt.Fprintln(w, blue(w, header))
+	for _, sub := range cmds {
+		if !sub.IsAvailableCommand() {
+			continue
+		}
+		padding := strings.Repeat(" ", max(1, 20-len(sub.Name())))
+		_, _ = fmt.Fprintf(w, "  %s%s%s\n",
+			green(w, sub.Name()),
+			padding,
+			sub.Short,
+		)
+	}
+	_, _ = fmt.Fprintln(w)
+}
+
 // SetHelpFormatter installs a custom help renderer on the root command that
 // cascades to all subcommands. Section headers get the blue ▶ prefix used
 // by the Ansible callback's play_start output; command names are green.
@@ -104,20 +124,25 @@ func helpFunc() func(*cobra.Command, []string) {
 			_, _ = fmt.Fprintln(w)
 		}
 
-		// Subcommand listing.
 		if cmd.HasAvailableSubCommands() {
-			_, _ = fmt.Fprintln(w, blue(w, "▶ Available Commands"))
+			var ansibleCmds, cliCmds []*cobra.Command
 			for _, sub := range cmd.Commands() {
-				if sub.IsAvailableCommand() {
-					padding := strings.Repeat(" ", max(1, 20-len(sub.Name())))
-					_, _ = fmt.Fprintf(w, "  %s%s%s\n",
-						green(w, sub.Name()),
-						padding,
-						sub.Short,
-					)
+				if !sub.IsAvailableCommand() {
+					continue
+				}
+				if isAnsibleCommand(sub) {
+					ansibleCmds = append(ansibleCmds, sub)
+				} else {
+					cliCmds = append(cliCmds, sub)
 				}
 			}
-			_, _ = fmt.Fprintln(w)
+
+			if len(ansibleCmds) > 0 && len(cliCmds) > 0 {
+				printCommandList(w, "▶ Commands", ansibleCmds)
+				printCommandList(w, "▶ CLI Commands", cliCmds)
+			} else {
+				printCommandList(w, "▶ Available Commands", cmd.Commands())
+			}
 		}
 
 		// Flags.
