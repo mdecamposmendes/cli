@@ -470,7 +470,7 @@ func verifySha256(filePath, checksumsPath, expectedFileName string) error {
 func checkoutBranch(repoDir, branch string) error {
 	if out, err := exec.Command("git", "-C", repoDir, "status", "--porcelain").Output(); err != nil {
 		return fmt.Errorf("failed to check working tree: %w", err)
-	} else if len(strings.TrimSpace(string(out))) > 0 {
+	} else if strings.TrimSpace(string(out)) != "" {
 		return fmt.Errorf("refusing to switch branches: uncommitted changes in %s", repoDir)
 	}
 

@@ -95,7 +95,7 @@ func setChannel(channel, repoDir string) error {
 		fmt.Fprintf(os.Stderr, "  warning: runtime update failed: %v\n", err)
 	}
 
-	if err := os.WriteFile(releaseChannelFilePath, []byte(channel), 0644); err != nil {
+	if err := os.WriteFile(releaseChannelFilePath, []byte(channel), 0o644); err != nil {
 		return fmt.Errorf("failed to persist %s channel: %w", channel, err)
 	}
 

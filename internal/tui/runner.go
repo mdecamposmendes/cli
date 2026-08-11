@@ -38,14 +38,15 @@ import (
 func RunWithPanel(root *cobra.Command, args []string, version string) error {
 	for _, arg := range args {
 		if arg == "--help" || arg == "-h" {
-			root.InitDefaultHelpCmd()
-			root.InitDefaultCompletionCmd(args...)
-			if cmd, _, err := root.Find(args); err == nil {
-				return cmd.Help()
-			}
-			os.Args = append([]string{os.Args[0]}, args...)
-			return root.Execute()
+			continue
 		}
+		root.InitDefaultHelpCmd()
+		root.InitDefaultCompletionCmd(args...)
+		if cmd, _, err := root.Find(args); err == nil {
+			return cmd.Help()
+		}
+		os.Args = append([]string{os.Args[0]}, args...)
+		return root.Execute()
 	}
 	// If the resolved command has no "playbook" annotation it is a built-in
 	// cobra command (e.g. self-upgrade, version) — execute via cobra, not ansible.
