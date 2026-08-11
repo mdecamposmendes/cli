@@ -34,6 +34,11 @@ func main() {
 		os.Args = removeVIFlag(os.Args)
 	}
 
+	if err := updater.CheckMigration(platform.RepoDir()); err != nil {
+		fmt.Fprintln(os.Stderr, commands.ErrorPrefix(err.Error()))
+		os.Exit(1)
+	}
+
 	// Run the periodic update check before dispatching any command.
 	// Skipped on --help / --version / -h invocations and when the user is
 	// explicitly running self-upgrade (which is the update mechanism itself).
