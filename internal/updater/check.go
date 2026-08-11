@@ -35,7 +35,7 @@ import (
 // tested against the fork. Once these changes are reviewed and merged into the
 // upstream project, revert cliRepo to "valet-sh/valet-sh-cli" and
 // playbookBranch to "master". See also selfupgrade.go which uses these consts.
-const cliRepo = "AW3i/cli"
+const cliRepo = "mdecamposmendes/cli"
 
 var playbookBranch = GetCurrentReleaseChannel()
 
