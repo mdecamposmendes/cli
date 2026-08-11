@@ -49,10 +49,6 @@ const (
 	// cliReleaseStableURL returns the latest non-prerelease, non-draft release.
 	cliReleaseStableURL = "https://api.github.com/repos/" + cliRepo + "/releases/latest"
 
-	// cliReleasesURL returns all releases (including pre-releases) ordered by
-	// created_at descending. Used by the dev channel.
-	cliReleasesURL = "https://api.github.com/repos/" + cliRepo + "/releases"
-
 	// apiTimeout caps the background-check HTTP call so a slow network never
 	// blocks the user mid-command.
 	apiTimeout = 3 * time.Second
@@ -78,7 +74,6 @@ func info(s string) string  { return ansiBlue + "ℹ " + s + ansiReset }
 // releaseResponse is the subset of the GitHub releases API we care about.
 type releaseResponse struct {
 	TagName string `json:"tag_name"`
-	Draft   bool   `json:"draft"`
 }
 
 // Check runs the periodic update check for both CLI and Ansible playbook repo.
@@ -209,16 +204,7 @@ func writeTimestamp() {
 	_ = f.Close()
 }
 
-// fetchLatestCliTag returns the latest tag for the configured channel using
-// the given HTTP timeout. Pass apiTimeout for background checks, upgradeAPITimeout
-// for explicit self-upgrade invocations.
 func fetchLatestCliTag(timeout time.Duration) (string, error) {
-	return fetchLatestStableTag(timeout)
-}
-
-// fetchLatestStableTag queries /releases/latest — GitHub only returns
-// non-prerelease, non-draft releases from this endpoint.
-func fetchLatestStableTag(timeout time.Duration) (string, error) {
 	resp, err := githubGet(cliReleaseStableURL, timeout)
 	if err != nil {
 		return "", err
@@ -234,32 +220,6 @@ func fetchLatestStableTag(timeout time.Duration) (string, error) {
 		return "", err
 	}
 	return strings.TrimPrefix(rel.TagName, "v"), nil
-}
-
-// fetchLatestAnyTag queries /releases (full list, newest first) and returns
-// the first non-draft entry — stable or pre-release.
-func fetchLatestAnyTag(timeout time.Duration) (string, error) {
-	resp, err := githubGet(cliReleasesURL, timeout)
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned %d", resp.StatusCode)
-	}
-
-	var releases []releaseResponse
-	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
-		return "", err
-	}
-
-	for _, r := range releases {
-		if !r.Draft {
-			return strings.TrimPrefix(r.TagName, "v"), nil
-		}
-	}
-	return "", fmt.Errorf("no published releases found")
 }
 
 // githubGet performs a GET request to the GitHub API with the standard headers.
