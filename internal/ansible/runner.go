@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -48,6 +49,19 @@ type ExtraVars struct {
 	// an extra-var would give it Ansible's highest precedence (22), preventing
 	// the playbook's set_fact calls from dynamically adjusting the path based
 	// on instance.path in .valet-sh.yml. See link.yml:66-72 and load-valet-sh-file.yml:37.
+}
+
+var pendingVars = map[string]any{}
+
+func SetVar(key string, value any) {
+	pendingVars[key] = value
+}
+
+func buildExtraVarsJSON(cli CLIVars) ([]byte, error) {
+	payload := make(map[string]any, len(pendingVars)+1)
+	maps.Copy(payload, pendingVars)
+	payload["cli"] = cli
+	return json.Marshal(payload)
 }
 
 // RunOpts configures a single ansible-playbook invocation.
@@ -86,20 +100,18 @@ func Run(opts *RunOpts) error {
 		}
 	}
 
-	extraVars := ExtraVars{
-		CLI: CLIVars{
-			Args: opts.Args,
-			Opts: opts.Opts,
-		},
+	cliVars := CLIVars{
+		Args: opts.Args,
+		Opts: opts.Opts,
 	}
-	if extraVars.CLI.Args == nil {
-		extraVars.CLI.Args = []string{}
+	if cliVars.Args == nil {
+		cliVars.Args = []string{}
 	}
-	if extraVars.CLI.Opts == nil {
-		extraVars.CLI.Opts = []string{}
+	if cliVars.Opts == nil {
+		cliVars.Opts = []string{}
 	}
 
-	extraVarsJSON, err := json.Marshal(extraVars)
+	extraVarsJSON, err := buildExtraVarsJSON(cliVars)
 	if err != nil {
 		return fmt.Errorf("serializing extra vars: %w", err)
 	}
@@ -158,20 +170,18 @@ func RunSubprocess(opts *RunOpts) (*exec.Cmd, io.Reader, func(), error) {
 		}
 	}
 
-	extraVars := ExtraVars{
-		CLI: CLIVars{
-			Args: opts.Args,
-			Opts: opts.Opts,
-		},
+	cliVars := CLIVars{
+		Args: opts.Args,
+		Opts: opts.Opts,
 	}
-	if extraVars.CLI.Args == nil {
-		extraVars.CLI.Args = []string{}
+	if cliVars.Args == nil {
+		cliVars.Args = []string{}
 	}
-	if extraVars.CLI.Opts == nil {
-		extraVars.CLI.Opts = []string{}
+	if cliVars.Opts == nil {
+		cliVars.Opts = []string{}
 	}
 
-	extraVarsJSON, err := json.Marshal(extraVars)
+	extraVarsJSON, err := buildExtraVarsJSON(cliVars)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("serializing extra vars: %w", err)
 	}
