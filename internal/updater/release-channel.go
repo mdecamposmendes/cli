@@ -91,7 +91,7 @@ func setChannel(channel, repoDir string) error {
 		return fmt.Errorf("failed to switch to %s channel: %w", channel, err)
 	}
 
-	if _, err := upgradeRuntimeIfNeeded(repoDir); err != nil {
+	if _, err := EnsureRuntime(repoDir); err != nil {
 		fmt.Fprintf(os.Stderr, "  warning: runtime update failed: %v\n", err)
 	}
 

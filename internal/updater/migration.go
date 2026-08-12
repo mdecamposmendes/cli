@@ -51,7 +51,7 @@ var migrationText = `
 `
 
 func CheckMigration(repoDir string) error {
-	if playbookBranch != "3.x" {
+	if PlaybookBranch != "3.x" {
 		return nil
 	}
 

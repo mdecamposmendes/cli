@@ -27,6 +27,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/valet-sh/cli/internal/style"
 )
 
 // SelfUpgrade checks for updates to both the CLI binary and the Ansible
@@ -38,31 +40,31 @@ import (
 // 'valet self-upgrade' directly.
 func SelfUpgrade(currentVersion, repoDir string) error {
 	fmt.Println()
-	fmt.Println(blue("▶ Checking for updates..."))
+	fmt.Println(style.Blue(os.Stdout, "▶ Checking for updates..."))
 	fmt.Println()
 
 	cliUpdated, cliErr := upgradeCliIfNeeded(currentVersion)
 	if cliErr != nil {
-		fmt.Fprintf(os.Stderr, "%s CLI update check failed: %v\n", ansiRed+"✘"+ansiReset, cliErr)
+		fmt.Fprintf(os.Stderr, "%s CLI update check failed: %v\n", style.Red(os.Stderr, "✘"), cliErr)
 	}
 
-	ansibleUpdated, ansibleErr := upgradeAnsibleIfNeeded(repoDir)
+	ansibleUpdated, ansibleErr := EnsurePlaybooks(repoDir, PlaybookRepo, PlaybookBranch)
 	if ansibleErr != nil {
-		fmt.Fprintf(os.Stderr, "%s Ansible playbook update failed: %v\n", ansiRed+"✘"+ansiReset, ansibleErr)
+		fmt.Fprintf(os.Stderr, "%s Ansible playbook update failed: %v\n", style.Red(os.Stderr, "✘"), ansibleErr)
 	}
 
 	// Runtime upgrade runs after the ansible pull so that if .runtime_version
 	// changed in the playbook repo, we immediately install the new version.
-	runtimeUpdated, runtimeErr := upgradeRuntimeIfNeeded(repoDir)
+	runtimeUpdated, runtimeErr := EnsureRuntime(repoDir)
 	if runtimeErr != nil {
-		fmt.Fprintf(os.Stderr, "%s Runtime update failed: %v\n", ansiRed+"✘"+ansiReset, runtimeErr)
+		fmt.Fprintf(os.Stderr, "%s Runtime update failed: %v\n", style.Red(os.Stderr, "✘"), runtimeErr)
 	}
 
 	// Only say "everything is up to date" when all checks succeeded and
 	// nothing was updated — not when any check failed.
 	if cliErr == nil && ansibleErr == nil && runtimeErr == nil &&
 		!cliUpdated && !ansibleUpdated && !runtimeUpdated {
-		fmt.Println(green("✓ Everything is up to date."))
+		fmt.Println(style.Green(os.Stdout, "✓ Everything is up to date."))
 	}
 
 	fmt.Println()
@@ -73,7 +75,7 @@ func SelfUpgrade(currentVersion, repoDir string) error {
 // if a newer version is available. Returns true if an update was performed.
 func upgradeCliIfNeeded(currentVersion string) (bool, error) {
 	if currentVersion == "dev" {
-		fmt.Println(info("Development build detected. Skipping CLI update."))
+		fmt.Println(style.Info(os.Stdout, "Development build detected. Skipping CLI update."))
 		return false, nil
 	}
 
@@ -83,12 +85,12 @@ func upgradeCliIfNeeded(currentVersion string) (bool, error) {
 	}
 
 	if !isNewer(latest, currentVersion) {
-		fmt.Printf("%s CLI is up to date (%s)\n", green("✓"), currentVersion)
+		fmt.Printf("%s CLI is up to date (%s)\n", style.Green(os.Stdout, "✓"), currentVersion)
 		return false, nil
 	}
 
 	fmt.Printf("%s New CLI version available: %s → %s\n",
-		blue("▶"), currentVersion, green(latest))
+		style.Blue(os.Stdout, "▶"), currentVersion, style.Green(os.Stdout, latest))
 
 	goos := runtime.GOOS
 	goarch := runtime.GOARCH
@@ -113,7 +115,7 @@ func upgradeCliIfNeeded(currentVersion string) (bool, error) {
 		return false, err
 	}
 
-	fmt.Printf("%s CLI updated to %s\n", green("✓"), latest)
+	fmt.Printf("%s CLI updated to %s\n", style.Green(os.Stdout, "✓"), latest)
 	return true, nil
 }
 
@@ -130,13 +132,13 @@ const (
 	runtimeVersionFile = "/usr/local/valet-sh/venv/.version"
 )
 
-// upgradeRuntimeIfNeeded compares the desired runtime version (from
+// EnsureRuntime compares the desired runtime version (from
 // {repoDir}/.runtime_version) with the installed version, and downloads
-// and extracts the new tarball when they differ.
+// and extracts the new tarball when they differ or nothing is installed yet.
 //
 // Note: valet-sh/runtime releases do not publish checksums — the download
 // is not checksum-verified. This mirrors the behaviour of install.sh.
-func upgradeRuntimeIfNeeded(repoDir string) (bool, error) {
+func EnsureRuntime(repoDir string) (bool, error) {
 	desiredFile := filepath.Join(repoDir, ".runtime_version")
 	data, err := os.ReadFile(desiredFile)
 	if err != nil {
@@ -152,18 +154,18 @@ func upgradeRuntimeIfNeeded(repoDir string) (bool, error) {
 		installed = strings.TrimSpace(string(d))
 	}
 
-	fmt.Printf("%s Checking for runtime updates...\n", blue("▶"))
+	fmt.Printf("%s Checking for runtime updates...\n", style.Blue(os.Stdout, "▶"))
 
 	if installed == desired {
-		fmt.Printf("%s Runtime is up to date (%s)\n", green("✓"), desired)
+		fmt.Printf("%s Runtime is up to date (%s)\n", style.Green(os.Stdout, "✓"), desired)
 		return false, nil
 	}
 
 	if installed != "" {
 		fmt.Printf("%s New runtime version available: %s → %s\n",
-			blue("▶"), installed, green(desired))
+			style.Blue(os.Stdout, "▶"), installed, style.Green(os.Stdout, desired))
 	} else {
-		fmt.Printf("%s Installing runtime %s...\n", blue("▶"), green(desired))
+		fmt.Printf("%s Installing runtime %s...\n", style.Blue(os.Stdout, "▶"), style.Green(os.Stdout, desired))
 	}
 
 	assetName, err := runtimeAssetName()
@@ -196,7 +198,7 @@ func upgradeRuntimeIfNeeded(repoDir string) (bool, error) {
 		fmt.Fprintf(os.Stderr, "  warning: could not save runtime version: %v\n", err)
 	}
 
-	fmt.Printf("%s Runtime updated to %s\n", green("✓"), desired)
+	fmt.Printf("%s Runtime updated to %s\n", style.Green(os.Stdout, "✓"), desired)
 	return true, nil
 }
 
@@ -263,21 +265,18 @@ func writeVersionFile(path, version string) error {
 	return os.WriteFile(path, []byte(version+"\n"), 0o644)
 }
 
-// upgradeAnsibleIfNeeded checks for updates to the Ansible playbook repo
-// and pulls the latest changes if available. Returns true if an update was performed.
-func upgradeAnsibleIfNeeded(repoDir string) (bool, error) {
+func EnsurePlaybooks(repoDir, repoURL, branch string) (bool, error) {
 	gitDir := filepath.Join(repoDir, ".git")
 	if _, err := os.Stat(gitDir); err != nil {
-		fmt.Printf("%s Ansible playbooks are not in a git repo. Skipping update.\n", blue("ℹ"))
-		return false, nil
+		return clonePlaybooks(repoDir, repoURL, branch)
 	}
 
-	fmt.Printf("%s Checking for Ansible playbook updates...\n", blue("▶"))
+	fmt.Printf("%s Checking for Ansible playbook updates...\n", style.Blue(os.Stdout, "▶"))
 	// FIXME(revert-before-upstream-merge): tracks the fork's playbook branch
-	// (playbookBranch, see check.go). Revert to "master" once merged upstream.
-	cmd := exec.Command("git", "-C", repoDir, "fetch", "--quiet", "origin", playbookBranch)
+	// (PlaybookBranch, see check.go). Revert to "master" once merged upstream.
+	cmd := exec.Command("git", "-C", repoDir, "fetch", "--quiet", "origin", branch)
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("%s Could not fetch Ansible playbook updates\n", blue("ℹ"))
+		fmt.Printf("%s Could not fetch Ansible playbook updates\n", style.Blue(os.Stdout, "ℹ"))
 		return false, nil
 	}
 
@@ -287,7 +286,7 @@ func upgradeAnsibleIfNeeded(repoDir string) (bool, error) {
 		return false, fmt.Errorf("failed to get local HEAD: %w", err)
 	}
 
-	remoteHeadCmd := exec.Command("git", "-C", repoDir, "rev-parse", "origin/"+playbookBranch)
+	remoteHeadCmd := exec.Command("git", "-C", repoDir, "rev-parse", "origin/"+branch)
 	remoteHead, err := remoteHeadCmd.Output()
 	if err != nil {
 		return false, fmt.Errorf("failed to get remote HEAD: %w", err)
@@ -297,17 +296,32 @@ func upgradeAnsibleIfNeeded(repoDir string) (bool, error) {
 	remoteHeadStr := strings.TrimSpace(string(remoteHead))
 
 	if localHeadStr == remoteHeadStr {
-		fmt.Printf("%s Ansible playbooks are up to date\n", green("✓"))
+		fmt.Printf("%s Ansible playbooks are up to date\n", style.Green(os.Stdout, "✓"))
 		return false, nil
 	}
 
 	fmt.Println("  Pulling latest Ansible playbooks...")
-	pullCmd := exec.Command("git", "-C", repoDir, "pull", "--quiet", "origin", playbookBranch)
+	pullCmd := exec.Command("git", "-C", repoDir, "pull", "--quiet", "origin", branch)
 	if err := pullCmd.Run(); err != nil {
 		return false, fmt.Errorf("failed to pull Ansible playbooks: %w", err)
 	}
 
-	fmt.Printf("%s Ansible playbooks updated\n", green("✓"))
+	fmt.Printf("%s Ansible playbooks updated\n", style.Green(os.Stdout, "✓"))
+	return true, nil
+}
+
+func clonePlaybooks(repoDir, repoURL, branch string) (bool, error) {
+	fmt.Printf("%s Cloning Ansible playbooks (%s@%s)...\n", style.Blue(os.Stdout, "▶"), repoURL, branch)
+
+	cloneURL := fmt.Sprintf("https://github.com/%s.git", repoURL)
+	cmd := exec.Command("git", "clone", "--quiet", "--branch", branch, cloneURL, repoDir)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return false, fmt.Errorf("failed to clone playbooks: %w", err)
+	}
+
+	fmt.Printf("%s Ansible playbooks cloned\n", style.Green(os.Stdout, "✓"))
 	return true, nil
 }
 
@@ -341,7 +355,7 @@ func downloadAndVerifyBinary(version, assetName string) (binPath, tmpDir string,
 		_ = os.RemoveAll(tmpDir)
 		return "", "", fmt.Errorf("checksum verification failed: %w", err)
 	}
-	fmt.Printf("  %s Checksum verified\n", green("✓"))
+	fmt.Printf("  %s Checksum verified\n", style.Green(os.Stdout, "✓"))
 
 	return binaryPath, tmpDir, nil
 }

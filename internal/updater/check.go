@@ -28,16 +28,18 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/valet-sh/cli/internal/style"
 )
 
 // FIXME(revert-before-upstream-merge): the updater is temporarily pointed at the
 // AW3i fork (CLI repo AW3i/cli, playbooks branch 3.x) so self-upgrade can be
 // tested against the fork. Once these changes are reviewed and merged into the
 // upstream project, revert cliRepo to "valet-sh/valet-sh-cli" and
-// playbookBranch to "master". See also selfupgrade.go which uses these consts.
 const cliRepo = "mdecamposmendes/cli"
+const PlaybookRepo = "valet-sh/valet-sh"
 
-var playbookBranch = GetCurrentReleaseChannel()
+var PlaybookBranch = GetCurrentReleaseChannel()
 
 const (
 	// checkInterval is how often the GitHub API is consulted.
@@ -57,19 +59,6 @@ const (
 	// where the user is actively waiting and a longer round-trip is acceptable.
 	upgradeAPITimeout = 15 * time.Second
 )
-
-// ANSI codes — same values as the Python callback plugin and help.go.
-const (
-	ansiRed   = "\033[1;31m"
-	ansiBlue  = "\033[1;34m"
-	ansiGreen = "\033[0;32m"
-	ansiBold  = "\033[;1m"
-	ansiReset = "\033[0;0m"
-)
-
-func blue(s string) string  { return ansiBlue + ansiBold + s + ansiReset }
-func green(s string) string { return ansiGreen + ansiBold + s + ansiReset }
-func info(s string) string  { return ansiBlue + "ℹ " + s + ansiReset }
 
 // releaseResponse is the subset of the GitHub releases API we care about.
 type releaseResponse struct {
@@ -113,7 +102,7 @@ func Check(currentVersion string, originalArgs []string, repoDir string) {
 			fmt.Println()
 			cliUpdated = promptSelfUpgrade()
 		} else {
-			fmt.Println(info("Skipping. Run 'valet self-upgrade' to upgrade anytime."))
+			fmt.Println(style.Info(os.Stdout, "Skipping. Run 'valet self-upgrade' to upgrade anytime."))
 			fmt.Println()
 		}
 	}
@@ -124,7 +113,7 @@ func Check(currentVersion string, originalArgs []string, repoDir string) {
 			fmt.Println()
 			promptSelfUpgrade()
 		} else {
-			fmt.Println(info("Skipping. Run 'valet self-upgrade' to upgrade anytime."))
+			fmt.Println(style.Info(os.Stdout, "Skipping. Run 'valet self-upgrade' to upgrade anytime."))
 			fmt.Println()
 		}
 	}
@@ -150,7 +139,7 @@ func checkAnsibleUpdate(repoDir string) bool {
 		return false
 	}
 
-	cmd := exec.Command("git", "-C", repoDir, "fetch", "--quiet", "origin", playbookBranch)
+	cmd := exec.Command("git", "-C", repoDir, "fetch", "--quiet", "origin", PlaybookBranch)
 	if err := cmd.Run(); err != nil {
 		return false
 	}
@@ -161,7 +150,7 @@ func checkAnsibleUpdate(repoDir string) bool {
 		return false
 	}
 
-	remoteHeadCmd := exec.Command("git", "-C", repoDir, "rev-parse", "origin/"+playbookBranch)
+	remoteHeadCmd := exec.Command("git", "-C", repoDir, "rev-parse", "origin/"+PlaybookBranch)
 	remoteHead, err := remoteHeadCmd.Output()
 	if err != nil {
 		return false
@@ -180,7 +169,7 @@ func promptSelfUpgrade() bool {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s self-upgrade failed: %v\n", ansiRed+"✘"+ansiReset, err)
+		fmt.Fprintf(os.Stderr, "%s self-upgrade failed: %v\n", style.Red(os.Stderr, "✘"), err)
 		return false
 	}
 	return true
@@ -292,18 +281,18 @@ func IsSelfUpgradeCall(args []string) bool {
 // printCliUpdatePrompt displays the CLI update notification.
 func printCliUpdatePrompt(current, latest string) {
 	fmt.Printf("%s %s → %s\n",
-		blue("▶ New CLI version available:"),
+		style.Blue(os.Stdout, "▶ New CLI version available:"),
 		current,
-		green(latest),
+		style.Green(os.Stdout, latest),
 	)
-	fmt.Printf("  %s\n", info("Run 'valet self-upgrade' to upgrade anytime."))
+	fmt.Printf("  %s\n", style.Info(os.Stdout, "Run 'valet self-upgrade' to upgrade anytime."))
 	fmt.Print("  Update CLI now? [y/N] ")
 }
 
 // printAnsibleUpdatePrompt displays the Ansible playbook update notification.
 func printAnsibleUpdatePrompt() {
-	fmt.Printf("%s\n", blue("▶ valet-sh playbook updates are available"))
-	fmt.Printf("  %s\n", info("Run 'valet self-upgrade' to upgrade anytime."))
+	fmt.Printf("%s\n", style.Blue(os.Stdout, "▶ valet-sh playbook updates are available"))
+	fmt.Printf("  %s\n", style.Info(os.Stdout, "Run 'valet self-upgrade' to upgrade anytime."))
 	fmt.Print("  Update playbooks now? [y/N] ")
 }
 
