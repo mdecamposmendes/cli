@@ -20,12 +20,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/valet-sh/cli/constants"
 	"github.com/valet-sh/cli/internal/ansible"
-)
-
-const (
-	serviceFile = "/usr/local/valet-sh/etc/services.yml"
-	bundlesFile = "/usr/local/valet-sh/etc/bundles.yml"
 )
 
 var migrationText = `
@@ -55,9 +51,9 @@ func CheckMigration(repoDir string) error {
 		return nil
 	}
 
-	_, err := os.Stat(serviceFile)
+	_, err := os.Stat(constants.VshServiceFile)
 	serviceExists := err == nil
-	_, err = os.Stat(bundlesFile)
+	_, err = os.Stat(constants.VshBundlesFile)
 	bundleExists := err == nil
 
 	if serviceExists || (serviceExists && bundleExists) {

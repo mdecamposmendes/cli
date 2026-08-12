@@ -20,12 +20,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-)
-
-const (
-	vshEtcPath             = "/usr/local/valet-sh/etc"
-	releaseChannelFile     = "RELEASE_CHANNEL"
-	releaseChannelFilePath = vshEtcPath + "/" + releaseChannelFile
+	"github.com/valet-sh/cli/constants"
+	"github.com/valet-sh/cli/internal/helper"
 )
 
 type channelConfig struct {
@@ -95,7 +91,11 @@ func setChannel(channel, repoDir string) error {
 		fmt.Fprintf(os.Stderr, "  warning: runtime update failed: %v\n", err)
 	}
 
-	if err := os.WriteFile(releaseChannelFilePath, []byte(channel), 0o644); err != nil {
+	if err := helper.EnsureOwnedDir(constants.VshEtcPath, constants.VshRootPath); err != nil {
+		return fmt.Errorf("failed to persist %s channel: %w", channel, err)
+	}
+
+	if err := os.WriteFile(constants.VshReleaseChannelFilePath, []byte(channel), 0o644); err != nil {
 		return fmt.Errorf("failed to persist %s channel: %w", channel, err)
 	}
 
@@ -104,7 +104,7 @@ func setChannel(channel, repoDir string) error {
 }
 
 func GetCurrentReleaseChannel() string {
-	content, err := os.ReadFile(releaseChannelFilePath)
+	content, err := os.ReadFile(constants.VshReleaseChannelFilePath)
 	if err != nil {
 		return "2.x"
 	}

@@ -23,12 +23,13 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/valet-sh/cli/constants"
+	"github.com/valet-sh/cli/internal/helper"
 	"github.com/valet-sh/cli/internal/style"
 )
 
@@ -126,11 +127,11 @@ const (
 
 	// runtimeInstallBase is the directory the runtime tarball is extracted into.
 	// The tarball root is venv/, so the venv ends up at runtimeInstallBase/venv/.
-	runtimeInstallBase = "/usr/local/valet-sh"
+	runtimeInstallBase = constants.VshRootPath
 
 	// runtimeVersionFile records the currently installed runtime version.
 	// Written after each successful runtime installation.
-	runtimeVersionFile = "/usr/local/valet-sh/venv/.version"
+	runtimeVersionFile = constants.VshVenvPath + "/.version"
 )
 
 // EnsureRuntime compares the desired runtime version (from
@@ -337,16 +338,8 @@ func gitClonePlaybooks(cloneURL, branch, repoDir string) error {
 
 	fmt.Println("  Requesting sudo to create protected path...")
 	parent := filepath.Dir(repoDir)
-	if err := exec.Command("sudo", "mkdir", "-p", parent).Run(); err != nil {
-		return fmt.Errorf("could not create %s: %w", parent, err)
-	}
-
-	currentUser, err := user.Current()
-	if err != nil {
-		return fmt.Errorf("could not determine current user: %w", err)
-	}
-	if err := exec.Command("sudo", "chown", currentUser.Username, parent).Run(); err != nil {
-		return fmt.Errorf("could not chown %s: %w", parent, err)
+	if err := helper.EnsureOwnedDir(parent, constants.VshRootPath); err != nil {
+		return err
 	}
 
 	return clone()

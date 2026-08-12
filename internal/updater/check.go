@@ -29,6 +29,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/valet-sh/cli/constants"
+	"github.com/valet-sh/cli/internal/helper"
 	"github.com/valet-sh/cli/internal/style"
 )
 
@@ -46,7 +48,7 @@ const (
 	checkInterval = 7 * 24 * time.Hour
 
 	// timestampFile records the last time the check ran.
-	timestampFile = "/usr/local/valet-sh/etc/.last_update_check"
+	timestampFile = constants.VshEtcPath + "/.last_update_check"
 
 	// cliReleaseStableURL returns the latest non-prerelease, non-draft release.
 	cliReleaseStableURL = "https://api.github.com/repos/" + cliRepo + "/releases/latest"
@@ -186,6 +188,9 @@ func checkDue() bool {
 
 // writeTimestamp touches the timestamp file, creating it if necessary.
 func writeTimestamp() {
+	if err := helper.EnsureOwnedDir(constants.VshEtcPath, constants.VshRootPath); err != nil {
+		return
+	}
 	f, err := os.OpenFile(timestampFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 	if err != nil {
 		return
