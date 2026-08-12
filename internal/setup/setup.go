@@ -51,6 +51,10 @@ func checkExistingInstallation() (bool, error) {
 func commonSetup(repoDir string) error {
 	fmt.Printf("%s\n", style.Green(os.Stdout, "Installing Valet-sh..."))
 
+	if err := helper.EnsureOwnedDir(constants.VshEtcPath, constants.VshRootPath); err != nil {
+		return err
+	}
+
 	if _, err := updater.EnsurePlaybooks(repoDir, updater.PlaybookRepo, updater.PlaybookBranch); err != nil {
 		return fmt.Errorf("failed to install playbooks: %w", err)
 	}
