@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/valet-sh/cli/internal/commands"
 	"github.com/valet-sh/cli/internal/platform"
+	"github.com/valet-sh/cli/internal/setup"
 	"github.com/valet-sh/cli/internal/tui"
 	"github.com/valet-sh/cli/internal/updater"
 )
@@ -143,6 +144,16 @@ Configuration is driven by a .valet-sh.yml file in each project directory.`,
 		commands.ApplyHooks(discovered)
 		cmd.AddCommand(discovered...)
 	}
+
+	cmd.AddCommand(&cobra.Command{
+		Use:          "setup",
+		Short:        "Setup valet-sh",
+		Long:         `Setup initializes valet-sh for the current user. It installs the valet-sh`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return setup.Setup()
+		},
+	})
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "self-upgrade",
