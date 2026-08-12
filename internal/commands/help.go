@@ -21,53 +21,13 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/valet-sh/cli/internal/style"
 )
-
-// ANSI codes — identical values to the Python callback plugin so that
-// Go-layer output is visually consistent with Ansible task output.
-const (
-	ansiRed   = "\033[1;31m"
-	ansiBlue  = "\033[1;34m"
-	ansiGreen = "\033[0;32m"
-	ansiBold  = "\033[;1m"
-	ansiReset = "\033[0;0m"
-)
-
-// isTerminal reports whether w is connected to a TTY. When output is piped
-// or redirected we skip all ANSI codes, matching fatih/color behavior
-// without adding a dependency.
-func isTerminal(w io.Writer) bool {
-	if f, ok := w.(*os.File); ok {
-		fi, err := f.Stat()
-		if err != nil {
-			return false
-		}
-		return (fi.Mode() & os.ModeCharDevice) != 0
-	}
-	return false
-}
-
-func blue(w io.Writer, s string) string {
-	if isTerminal(w) {
-		return ansiBlue + ansiBold + s + ansiReset
-	}
-	return s
-}
-
-func green(w io.Writer, s string) string {
-	if isTerminal(w) {
-		return ansiGreen + s + ansiReset
-	}
-	return s
-}
 
 // ErrorPrefix returns a styled "✘ msg" string for Go-layer error output.
 // Used by root RunE (unknown command) and validation errors.
 func ErrorPrefix(msg string) string {
-	if isTerminal(os.Stderr) {
-		return ansiRed + "✘ " + msg + ansiReset
-	}
-	return "✘ " + msg
+	return style.Red(os.Stderr, "✘ "+msg)
 }
 
 func isAnsibleCommand(cmd *cobra.Command) bool {
@@ -75,14 +35,14 @@ func isAnsibleCommand(cmd *cobra.Command) bool {
 }
 
 func printCommandList(w io.Writer, header string, cmds []*cobra.Command) {
-	_, _ = fmt.Fprintln(w, blue(w, header))
+	_, _ = fmt.Fprintln(w, style.Blue(w, header))
 	for _, sub := range cmds {
 		if !sub.IsAvailableCommand() {
 			continue
 		}
 		padding := strings.Repeat(" ", max(1, 20-len(sub.Name())))
 		_, _ = fmt.Fprintf(w, "  %s%s%s\n",
-			green(w, sub.Name()),
+			style.Green(w, sub.Name()),
 			padding,
 			sub.Short,
 		)
@@ -114,7 +74,7 @@ func helpFunc() func(*cobra.Command, []string) {
 
 		// Usage line.
 		if cmd.Runnable() || cmd.HasAvailableSubCommands() {
-			_, _ = fmt.Fprintln(w, blue(w, "▶ Usage"))
+			_, _ = fmt.Fprintln(w, style.Blue(w, "▶ Usage"))
 			if cmd.Runnable() {
 				_, _ = fmt.Fprintf(w, "  %s\n", cmd.UseLine())
 			}
@@ -148,20 +108,20 @@ func helpFunc() func(*cobra.Command, []string) {
 		// Flags.
 		flags := cmd.LocalFlags()
 		if cmd.HasAvailableLocalFlags() {
-			_, _ = fmt.Fprintln(w, blue(w, "▶ Flags"))
+			_, _ = fmt.Fprintln(w, style.Blue(w, "▶ Flags"))
 			_, _ = fmt.Fprintln(w, flags.FlagUsages())
 		}
 
 		// Inherited flags (only shown if there are any beyond help).
 		if cmd.HasAvailableInheritedFlags() {
-			_, _ = fmt.Fprintln(w, blue(w, "▶ Global Flags"))
+			_, _ = fmt.Fprintln(w, style.Blue(w, "▶ Global Flags"))
 			_, _ = fmt.Fprintln(w, cmd.InheritedFlags().FlagUsages())
 		}
 
 		// Hint line.
 		if cmd.HasAvailableSubCommands() {
 			_, _ = fmt.Fprintf(w, "%s\n",
-				blue(w, fmt.Sprintf(`Use "%s [command] --help" for more information about a command.`, cmd.CommandPath())),
+				style.Blue(w, fmt.Sprintf(`Use "%s [command] --help" for more information about a command.`, cmd.CommandPath())),
 			)
 		}
 	}
