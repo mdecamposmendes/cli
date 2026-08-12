@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -314,15 +315,41 @@ func clonePlaybooks(repoDir, repoURL, branch string) (bool, error) {
 	fmt.Printf("%s Cloning Ansible playbooks (%s@%s)...\n", style.Blue(os.Stdout, "▶"), repoURL, branch)
 
 	cloneURL := fmt.Sprintf("https://github.com/%s.git", repoURL)
-	cmd := exec.Command("git", "clone", "--quiet", "--branch", branch, cloneURL, repoDir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := gitClonePlaybooks(cloneURL, branch, repoDir); err != nil {
 		return false, fmt.Errorf("failed to clone playbooks: %w", err)
 	}
 
 	fmt.Printf("%s Ansible playbooks cloned\n", style.Green(os.Stdout, "✓"))
 	return true, nil
+}
+
+func gitClonePlaybooks(cloneURL, branch, repoDir string) error {
+	clone := func() error {
+		cmd := exec.Command("git", "clone", "--quiet", "--branch", branch, cloneURL, repoDir)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
+	}
+
+	if err := clone(); err == nil {
+		return nil
+	}
+
+	fmt.Println("  Requesting sudo to create protected path...")
+	parent := filepath.Dir(repoDir)
+	if err := exec.Command("sudo", "mkdir", "-p", parent).Run(); err != nil {
+		return fmt.Errorf("could not create %s: %w", parent, err)
+	}
+
+	currentUser, err := user.Current()
+	if err != nil {
+		return fmt.Errorf("could not determine current user: %w", err)
+	}
+	if err := exec.Command("sudo", "chown", currentUser.Username, parent).Run(); err != nil {
+		return fmt.Errorf("could not chown %s: %w", parent, err)
+	}
+
+	return clone()
 }
 
 // downloadAndVerifyBinary downloads the binary and checksums.txt from GitHub
