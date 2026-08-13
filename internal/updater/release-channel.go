@@ -29,10 +29,15 @@ type channelConfig struct {
 	value string
 }
 
+// var availableChannels = []channelConfig{
+// 	{label: "2.x (stable)", value: "2.x"},
+// 	{label: "3.x (preview)", value: "3.x"},
+// 	{label: "next (development)", value: "next"},
+// }
+
 var availableChannels = []channelConfig{
-	{label: "2.x (stable)", value: "2.x"},
-	{label: "3.x (preview)", value: "3.x"},
-	{label: "next (development)", value: "next"},
+	{label: constants.VshStableVersion + " (Stable)", value: constants.VshStableVersion},
+	{label: constants.VshNextVersion + " (development)", value: constants.VshNextVersion},
 }
 
 func ReleaseChannel(repoDir string) error {
@@ -106,7 +111,7 @@ func setChannel(channel, repoDir string) error {
 func GetCurrentReleaseChannel() string {
 	content, err := os.ReadFile(constants.VshReleaseChannelFilePath)
 	if err != nil {
-		return "2.x"
+		return constants.VshStableVersion
 	}
 	return strings.TrimSpace(string(content))
 }
