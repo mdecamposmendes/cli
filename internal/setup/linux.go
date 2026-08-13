@@ -24,14 +24,14 @@ import (
 
 func InstallLinuxDependencies() error {
 
-	fmt.Printf("%s\n", style.Green(os.Stdout, "Running apt-get update"))
+	fmt.Printf("%s\n", style.Info(os.Stdout, "Running apt-get update"))
 
 	cmd := exec.Command("sudo", "apt-get", "update")
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to update apt: %w", err)
 	}
 
-	fmt.Printf("%s\n", style.Green(os.Stdout, "Installing dependencies"))
+	fmt.Printf("%s\n", style.Info(os.Stdout, "Installing dependencies"))
 
 	cmd = exec.Command("sudo", "apt-get", "install", "-y", "git", "curl", "tar")
 	if err := cmd.Run(); err != nil {
