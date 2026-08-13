@@ -16,6 +16,7 @@ package setup
 
 import (
 	"fmt"
+	"io"
 	goruntime "runtime"
 
 	"os"
@@ -46,7 +47,11 @@ func checkExistingInstallation() (bool, error) {
 	if helper.PathExists(constants.VshBasePath) || helper.PathExists(constants.VshVenvPath) {
 		fmt.Printf("%s\n", style.Yellow(os.Stdout, "valet-sh is already installed. Do you want to reinstall? (y/n): "))
 		var response string
-		fmt.Scanln(&response)
+		_, err := fmt.Scanln(&response)
+		if err != nil && err != io.EOF {
+			return false, fmt.Errorf("failed to read user input: %w", err)
+		}
+
 		if response != "y" {
 			fmt.Printf("%s\n", style.Yellow(os.Stdout, "Setup cancelled"))
 			return false, nil
@@ -58,15 +63,27 @@ func checkExistingInstallation() (bool, error) {
 			fmt.Printf("%s\n", style.Green(os.Stdout, "Existing installation removed"))
 		}
 	}
-
 	return true, nil
 }
 
 func commonSetup(repoDir string) error {
-	fmt.Printf("%s\n", style.Green(os.Stdout, "Installing Valet-sh..."))
+	fmt.Printf("%s\n", style.Info(os.Stdout, "Installing valet.sh..."))
 
 	if err := helper.EnsureOwnedDir(constants.VshEtcPath, constants.VshRootPath); err != nil {
 		return err
+	}
+
+	_, err := os.Stat(constants.VshReleaseChannelFilePath)
+	if os.IsNotExist(err) {
+		_, err := os.Create(constants.VshReleaseChannelFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to create release channel file: %w", err)
+		}
+		releaseChannelStableVersion := constants.VshStableVersion
+		err = os.WriteFile(constants.VshReleaseChannelFilePath, []byte(releaseChannelStableVersion), 0o644)
+		if err != nil {
+			return fmt.Errorf("failed to write release channel file: %w", err)
+		}
 	}
 
 	if _, err := updater.EnsurePlaybooks(repoDir, constants.VshPlaybookRepo, updater.PlaybookBranch); err != nil {
