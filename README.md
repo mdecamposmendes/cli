@@ -9,4 +9,4 @@ with arguments it shows a live execution panel and delegates to Ansible.
 ## License
 
 Apache 2.0 — see repository root for full license text.
-Copyright 2025 TechDivision GmbH
+Copyright 2026 TechDivision GmbH
