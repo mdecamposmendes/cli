@@ -20,6 +20,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/valet-sh/cli/constants"
 )
 
 // AnsiblePlaybookBin returns the full path to the ansible-playbook binary,
@@ -43,9 +45,6 @@ func AnsiblePlaybookBin() string {
 	return "ansible-playbook"
 }
 
-// repoDirDefault is the production install path of the valet-sh Ansible repo.
-const repoDirDefault = "/usr/local/valet-sh/valet-sh"
-
 // RepoDirEnvVar is the environment variable that overrides the Ansible repo
 // path. Set it to the absolute path of your valet-sh checkout to run the
 // development binary against local playbooks and config without installing:
@@ -61,7 +60,7 @@ func RepoDir() string {
 	if dir := os.Getenv(RepoDirEnvVar); dir != "" {
 		return dir
 	}
-	return repoDirDefault
+	return constants.VshBasePath
 }
 
 // DevRepoDir returns the VALET_REPO_DIR override if set, or empty string.

@@ -28,7 +28,7 @@ const (
 	ansiBlue   = "\033[1;34m"
 	ansiGreen  = "\033[0;32m"
 	ansiYellow = "\033[0;33m"
-	ansiBold   = "\033[;1m"
+	ansiBold   = "\033[1m"
 	ansiReset  = "\033[0;0m"
 )
 

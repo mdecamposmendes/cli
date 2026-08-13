@@ -50,7 +50,7 @@ func SelfUpgrade(currentVersion, repoDir string) error {
 		fmt.Fprintf(os.Stderr, "%s CLI update check failed: %v\n", style.Red(os.Stderr, "✘"), cliErr)
 	}
 
-	ansibleUpdated, ansibleErr := EnsurePlaybooks(repoDir, PlaybookRepo, PlaybookBranch)
+	ansibleUpdated, ansibleErr := EnsurePlaybooks(repoDir, constants.VshPlaybookRepo, PlaybookBranch)
 	if ansibleErr != nil {
 		fmt.Fprintf(os.Stderr, "%s Ansible playbook update failed: %v\n", style.Red(os.Stderr, "✘"), ansibleErr)
 	}
@@ -121,19 +121,6 @@ func upgradeCliIfNeeded(currentVersion string) (bool, error) {
 	return true, nil
 }
 
-const (
-	// runtimeRepo is the GitHub repo that publishes Python venv tarballs.
-	runtimeRepo = "valet-sh/runtime"
-
-	// runtimeInstallBase is the directory the runtime tarball is extracted into.
-	// The tarball root is venv/, so the venv ends up at runtimeInstallBase/venv/.
-	runtimeInstallBase = constants.VshRootPath
-
-	// runtimeVersionFile records the currently installed runtime version.
-	// Written after each successful runtime installation.
-	runtimeVersionFile = constants.VshVenvPath + "/.version"
-)
-
 // EnsureRuntime compares the desired runtime version (from
 // {repoDir}/.runtime_version) with the installed version, and downloads
 // and extracts the new tarball when they differ or nothing is installed yet.
@@ -152,7 +139,7 @@ func EnsureRuntime(repoDir string) (bool, error) {
 	}
 
 	installed := ""
-	if d, readErr := os.ReadFile(runtimeVersionFile); readErr == nil {
+	if d, readErr := os.ReadFile(constants.VshRuntimeVersionFile); readErr == nil {
 		installed = strings.TrimSpace(string(d))
 	}
 
@@ -176,7 +163,7 @@ func EnsureRuntime(repoDir string) (bool, error) {
 	}
 
 	downloadURL := fmt.Sprintf("https://github.com/%s/releases/download/%s/%s",
-		runtimeRepo, desired, assetName)
+		constants.VshRuntimeRepo, desired, assetName)
 
 	fmt.Printf("  Downloading %s...\n", assetName)
 
@@ -192,11 +179,11 @@ func EnsureRuntime(repoDir string) (bool, error) {
 	}
 
 	fmt.Println("  Extracting runtime...")
-	if err := extractTar(tarPath, runtimeInstallBase); err != nil {
+	if err := extractTar(tarPath, constants.VshRuntimeInstallBase); err != nil {
 		return false, err
 	}
 
-	if err := writeVersionFile(runtimeVersionFile, desired); err != nil {
+	if err := writeVersionFile(constants.VshRuntimeVersionFile, desired); err != nil {
 		fmt.Fprintf(os.Stderr, "  warning: could not save runtime version: %v\n", err)
 	}
 
@@ -350,9 +337,7 @@ func gitClonePlaybooks(cloneURL, branch, repoDir string) error {
 // downloaded binary and the temp directory that contains it. The caller is
 // responsible for cleaning up the temp directory after using the binary.
 func downloadAndVerifyBinary(version, assetName string) (binPath, tmpDir string, err error) {
-	// FIXME(revert-before-upstream-merge): uses the fork's release repo (cliRepo,
-	// see check.go). Revert to "valet-sh/valet-sh-cli" once merged upstream.
-	releaseURL := fmt.Sprintf("https://github.com/%s/releases/download/%s", cliRepo, version)
+	releaseURL := fmt.Sprintf("https://github.com/%s/releases/download/%s", constants.VshCliRepo, version)
 
 	tmpDir, err = os.MkdirTemp("", "valet-upgrade-*")
 	if err != nil {

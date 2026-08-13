@@ -69,7 +69,7 @@ func commonSetup(repoDir string) error {
 		return err
 	}
 
-	if _, err := updater.EnsurePlaybooks(repoDir, updater.PlaybookRepo, updater.PlaybookBranch); err != nil {
+	if _, err := updater.EnsurePlaybooks(repoDir, constants.VshPlaybookRepo, updater.PlaybookBranch); err != nil {
 		return fmt.Errorf("failed to install playbooks: %w", err)
 	}
 	if _, err := updater.EnsureRuntime(repoDir); err != nil {

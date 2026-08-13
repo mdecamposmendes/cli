@@ -34,31 +34,12 @@ import (
 	"github.com/valet-sh/cli/internal/style"
 )
 
-// FIXME(revert-before-upstream-merge): the updater is temporarily pointed at the
-// AW3i fork (CLI repo AW3i/cli, playbooks branch 3.x) so self-upgrade can be
-// tested against the fork. Once these changes are reviewed and merged into the
-// upstream project, revert cliRepo to "valet-sh/valet-sh-cli" and
-const cliRepo = "mdecamposmendes/cli"
-const PlaybookRepo = "valet-sh/valet-sh"
-
 var PlaybookBranch = GetCurrentReleaseChannel()
 
 const (
-	// checkInterval is how often the GitHub API is consulted.
-	checkInterval = 7 * 24 * time.Hour
-
-	// timestampFile records the last time the check ran.
-	timestampFile = constants.VshEtcPath + "/.last_update_check"
-
-	// cliReleaseStableURL returns the latest non-prerelease, non-draft release.
-	cliReleaseStableURL = "https://api.github.com/repos/" + cliRepo + "/releases/latest"
-
-	// apiTimeout caps the background-check HTTP call so a slow network never
-	// blocks the user mid-command.
-	apiTimeout = 3 * time.Second
-
-	// upgradeAPITimeout is used for explicit 'valet self-upgrade' invocations
-	// where the user is actively waiting and a longer round-trip is acceptable.
+	checkInterval     = 7 * 24 * time.Hour
+	timestampFile     = constants.VshEtcPath + "/.last_update_check"
+	apiTimeout        = 3 * time.Second
 	upgradeAPITimeout = 15 * time.Second
 )
 
@@ -199,7 +180,7 @@ func writeTimestamp() {
 }
 
 func fetchLatestCliTag(timeout time.Duration) (string, error) {
-	resp, err := githubGet(cliReleaseStableURL, timeout)
+	resp, err := githubGet(constants.VshCliReleaseURL, timeout)
 	if err != nil {
 		return "", err
 	}
