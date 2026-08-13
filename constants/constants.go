@@ -1,6 +1,9 @@
 package constants
 
 const (
+	VshStableVersion = "3.x"
+	VshNextVersion   = "next"
+
 	VshRootPath = "/usr/local/valet-sh"
 
 	VshBasePath = VshRootPath + "/valet-sh"
