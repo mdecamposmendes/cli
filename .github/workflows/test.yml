@@ -18,14 +18,14 @@ name: Go Tests
 
 on:
   push:
-    branches: [ main, master, next, 2.x ]
+    branches: [ main, 3.x ]
     paths:
       - '**.go'
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/test.yml'
   pull_request:
-    branches: [ main, master, next, 2.x ]
+    branches: [ main, 3.x ]
     paths:
       - '**.go'
       - 'go.mod'
