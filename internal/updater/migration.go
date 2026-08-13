@@ -22,6 +22,7 @@ import (
 
 	"github.com/valet-sh/cli/constants"
 	"github.com/valet-sh/cli/internal/ansible"
+	"github.com/valet-sh/cli/internal/style"
 )
 
 var migrationText = `
@@ -57,9 +58,9 @@ func CheckMigration(repoDir string) error {
 	bundleExists := err == nil
 
 	if serviceExists || (serviceExists && bundleExists) {
-		fmt.Printf("%s", migrationText)
+		fmt.Println(style.Yellow(os.Stdout, migrationText))
 
-		fmt.Print("Type 'migrate' to proceed, or press [Enter] to cancel/skip: ")
+		fmt.Println(style.Info(os.Stdout, "Type 'migrate' to proceed, or press [Enter] to cancel/skip: "))
 
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
@@ -83,7 +84,7 @@ func CheckMigration(repoDir string) error {
 					return fmt.Errorf("failed to switch to 2.x branch: %w", err)
 				}
 			} else {
-				fmt.Println("Migration canceled")
+				fmt.Println(style.Yellow(os.Stdout, "Migration canceled"))
 				os.Exit(0)
 			}
 
