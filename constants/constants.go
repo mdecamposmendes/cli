@@ -17,7 +17,7 @@ const (
 	VshReleaseChannelFile     = "RELEASE_CHANNEL"
 	VshReleaseChannelFilePath = VshEtcPath + "/" + VshReleaseChannelFile
 
-	VshCliRepo       = "mdecamposmendes/cli"
+	VshCliRepo       = "valet-sh/go-cli"
 	VshPlaybookRepo  = "valet-sh/valet-sh"
 	VshCliReleaseURL = "https://api.github.com/repos/" + VshCliRepo + "/releases/latest"
 
