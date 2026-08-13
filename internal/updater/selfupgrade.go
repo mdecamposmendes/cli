@@ -261,8 +261,6 @@ func EnsurePlaybooks(repoDir, repoURL, branch string) (bool, error) {
 	}
 
 	fmt.Printf("%s Checking for Ansible playbook updates...\n", style.Blue(os.Stdout, "▶"))
-	// FIXME(revert-before-upstream-merge): tracks the fork's playbook branch
-	// (PlaybookBranch, see check.go). Revert to "master" once merged upstream.
 	cmd := exec.Command("git", "-C", repoDir, "fetch", "--quiet", "origin", branch)
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("%s Could not fetch Ansible playbook updates\n", style.Blue(os.Stdout, "ℹ"))
